@@ -81,18 +81,25 @@ export default {
         }
 
         if (this.form.password === '123456' && roleMap[this.form.username]) {
+          // 清除旧的用户信息
+          localStorage.clear()
+          
+          // 设置新的用户信息
           localStorage.setItem('userToken', 'demo-token')
           localStorage.setItem('userRole', roleName[this.form.username])
+          localStorage.setItem('username', this.form.username)
           
-          const targetPath = roleMap[this.form.username]
-          if (this.$route.path !== targetPath) {
-            await this.$router.push(targetPath)
-          }
+          // 触发全局事件，通知其他组件用户信息已更新
+          this.$root.$emit('user-role-changed', roleName[this.form.username])
+          
+          // 统一导航到 HomePage
+          await this.$router.push('/home')
         } else {
           this.$message.error('用户名或密码错误')
         }
       } catch (error) {
-        // 静默处理导航重复错误
+        console.error('登录错误:', error)
+        this.$message.error('登录失败，请重试')
       } finally {
         this.loading = false
       }

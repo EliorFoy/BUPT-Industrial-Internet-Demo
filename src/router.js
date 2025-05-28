@@ -27,11 +27,11 @@ const router = new Router({
       name: 'equipment-monitor', 
       component: () => import('@/views/Home/Modules/Equipment/EquipmentMonitoring.vue')
     },
-      {
-        path: '/equipment-monitor/detail/:id', // 修正为动态参数路径
-        name: 'equipment-detail',
-        component: () => import('@/views/Home/Modules/Equipment/EquipmentDetail.vue')
-      },
+    {
+      path: '/equipment-monitor/detail/:id',
+      name: 'equipment-detail',
+      component: () => import('@/views/Home/Modules/Equipment/EquipmentDetail.vue')
+    },
     {
       path: '/production-monitor',
       name: 'production-monitor',

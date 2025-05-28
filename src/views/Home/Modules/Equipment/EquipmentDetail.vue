@@ -135,15 +135,15 @@
     name: 'DeviceDetail',
     computed: {
       deviceId() {
-        return this.$route.params.id
+        return Number(this.$route.params.id)
       },
       currentDevice() {
+        const device = this.$store.getters.getDeviceById(this.deviceId)
         return {
-          name: this.$route.query.name || '未知设备',
-          status: this.$route.query.status || '未知状态',
-          location: this.$route.query.location || '未知位置',
-          // 保留原有设备数据逻辑
-          ...this.$store.state.devices.find(d => d.id === Number(this.deviceId)) || {}
+          name: device?.name || this.$route.query.name || '未知设备',
+          status: device?.status || this.$route.query.status || '未知状态',
+          location: device?.location || this.$route.query.location || '未知位置',
+          ...device || {}
         }
       }
     },

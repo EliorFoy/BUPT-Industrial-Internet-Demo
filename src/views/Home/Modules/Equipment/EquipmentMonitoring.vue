@@ -63,8 +63,8 @@
 <script>
 export default {
   created() {
-    // 修改为使用action异步提交
-    this.$store.dispatch('initDevices', this.devices)
+    // 初始化设备数据到 Vuex store
+    this.$store.commit('SET_DEVICES', this.devices)
   },
   data() {
     return {
@@ -148,8 +148,7 @@ export default {
     // 这里可以添加组件的方法
     viewDetail(device) {
       this.$router.push({
-        name: 'equipment-detail',
-        params: { id: device.id },
+        path: `/equipment-monitor/detail/${device.id}`,
         query: {
           name: device.name,
           status: device.status,

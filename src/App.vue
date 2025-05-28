@@ -52,6 +52,11 @@
 <script>
 export default {
   name: 'App',
+  data() {
+    return {
+      currentRole: localStorage.getItem('userRole') || ''
+    }
+  },
   computed: {
     // 判断是否显示导航栏
     showNav() {
@@ -68,14 +73,24 @@ export default {
         teamLeader: '班组长',
         member: '操作组员'
       }
-      const userRole = localStorage.getItem('userRole') // 从store中获取
-      return roleMap[userRole] || '未识别身份'
+      return this.currentRole ? roleMap[this.currentRole] || '未知角色' : '未登录'
     }
+  },
+  created() {
+    // 监听用户角色变化
+    this.$root.$on('user-role-changed', (role) => {
+      this.currentRole = role
+    })
+  },
+  beforeDestroy() {
+    // 清理事件监听
+    this.$root.$off('user-role-changed')
   },
   methods: {
     // 退出登录
     handleLogout() {
       localStorage.clear()
+      this.currentRole = ''
       this.$router.replace('/login').catch(() => {})
     },
 
