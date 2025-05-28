@@ -49,15 +49,17 @@
       </div>
 
       <!-- 显示选中日期的详情 -->
-      <div class="selected-date-info" v-if="selectedDay">
+      <div class="selected-date-info" v-if="selectedDay && selectedDay.tasks && selectedDay.tasks.length > 0">
         <h4>选中的日期: {{ selectedDay.formattedDate }}</h4>
-        <el-button type="primary" @click="viewEvents">查看事件</el-button>
+        <div v-for="(task, index) in selectedDay.tasks" :key="index" class="task-info">
+          <p><strong>任务类型：</strong>{{ task.type }}</p>
+          <p><strong>巡检产线：</strong>{{ task.title }}</p>
+          <p><strong>开始时间：</strong>{{ task.startTime }}</p>
+          <p><strong>结束时间：</strong>{{ task.endTime }}</p>
+          <p><strong>状态：</strong>{{ task.status }}</p>
+        </div>
       </div>
 
-      <!-- 客服悬浮按钮 -->
-      <div class="floating-button">
-        <i class="el-icon-message"></i>
-      </div>
     </div>
 
     <!-- 底部导航栏 -->
@@ -87,10 +89,15 @@
       width="50%"
     >
       <div v-if="selectedDay">
-        <p v-if="selectedDay.events.length === 0">该日期没有事件。</p>
+        <p v-if="selectedDay.tasks.length === 0">该日期没有事件。</p>
         <div v-else>
-          <div v-for="(event, index) in selectedDay.events" :key="index">
-            <p><strong>事件 {{ index + 1 }}:</strong> {{ event }}</p>
+          <div v-for="(task, index) in selectedDay.tasks" :key="index" class="task-item">
+            <h4>{{ task.title }}</h4>
+            <p>类型: {{ task.type }}</p>
+            <p>开始时间: {{ task.startTime }}</p>
+            <p>结束时间: {{ task.endTime }}</p>
+            <span class="task-status status-pending" v-if="task.status === '未完成'">未完成</span>
+            <span class="task-status status-completed" v-if="task.status === '已完成'">已完成</span>
           </div>
         </div>
       </div>
@@ -99,6 +106,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'TaskCalendar',
   data() {
@@ -107,12 +116,7 @@ export default {
       selectedDay: null,
       eventsDialogVisible: false,
       calendarDays: [],
-      // 模拟数据：特定日期的事件
-      eventsData: {
-        '2025-05-13': ['巡检任务'],
-        '2025-05-15': ['维护任务'],
-        '2025-05-20': ['设备检查'],
-      },
+      taskData: [], // 存储从API获取的任务数据
     };
   },
   computed: {
@@ -121,9 +125,55 @@ export default {
     },
   },
   created() {
-    this.generateCalendar();
+    this.fetchTaskData();
   },
   methods: {
+    // 获取任务数据
+    async fetchTaskData() {
+      try {
+        const response = await axios.get('http://10.160.4.92:8018/cloudForm/getAllFormByUid/19');
+        if (response.data.code === 200 && response.data.ok) {
+          this.taskData = response.data.data;
+          this.generateCalendar();
+        }
+      } catch (error) {
+        console.error('获取任务数据失败:', error);
+        this.$message.error('获取任务数据失败');
+      }
+    },
+
+    // 检查日期是否有任务
+    hasTaskOnDate(dateStr) {
+      return this.taskData.some(task => {
+        const taskDate = new Date(task.form.taskStartTimeDate);
+        const taskDateStr = this.formatDate(
+          taskDate.getFullYear(),
+          taskDate.getMonth(),
+          taskDate.getDate()
+        );
+        return taskDateStr === dateStr;
+      });
+    },
+
+    // 获取日期对应的任务
+    getTasksForDate(dateStr) {
+      return this.taskData.filter(task => {
+        const taskDate = new Date(task.form.taskStartTimeDate);
+        const taskDateStr = this.formatDate(
+          taskDate.getFullYear(),
+          taskDate.getMonth(),
+          taskDate.getDate()
+        );
+        return taskDateStr === dateStr;
+      }).map(task => ({
+        title: task.form.taskDetail,
+        type: task.form.taskType,
+        startTime: task.form.taskStartTime,
+        endTime: task.form.taskEndTime,
+        status: task.form.status
+      }));
+    },
+
     // 生成日历数据
     generateCalendar() {
       const year = this.currentDate.getFullYear();
@@ -131,12 +181,11 @@ export default {
       const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
       const daysInMonth = lastDay.getDate();
-      const startDay = firstDay.getDay(); // 0 表示星期日
+      const startDay = firstDay.getDay();
 
-      // 清空日历数据
       this.calendarDays = [];
 
-      // 添加空白单元格以对齐星期
+      // 添加空白单元格
       for (let i = 0; i < startDay; i++) {
         this.calendarDays.push({
           date: '',
@@ -149,9 +198,10 @@ export default {
       // 填充日期数据
       for (let i = 1; i <= daysInMonth; i++) {
         const dateStr = this.formatDate(year, month, i);
-        const hasEvent = this.eventsData[dateStr] ? true : false;
+        const hasEvent = this.hasTaskOnDate(dateStr);
         const isToday = this.isToday(year, month, i);
         const isSelected = this.selectedDay && this.selectedDay.dateStr === dateStr;
+        const tasks = this.getTasksForDate(dateStr);
 
         this.calendarDays.push({
           date: i,
@@ -159,13 +209,13 @@ export default {
           hasEvent,
           isToday,
           isSelected,
-          events: this.eventsData[dateStr] || [],
+          tasks,
         });
       }
 
-      // 添加额外的空白单元格以填满最后一行
+      // 添加额外的空白单元格
       const totalCells = startDay + daysInMonth;
-      const cellsToAdd = 42 - totalCells; // 6行 * 7列 = 42单元格
+      const cellsToAdd = 42 - totalCells;
       for (let i = 0; i < cellsToAdd; i++) {
         this.calendarDays.push({
           date: '',
@@ -191,11 +241,11 @@ export default {
 
     // 选择日期
     selectDay(day) {
-      if (!day.date) return; // 不选择空白单元格
+      if (!day.date) return;
       this.selectedDay = {
         formattedDate: `${this.currentDate.getFullYear()}年${this.currentDate.getMonth() + 1}月${day.date}日`,
         dateStr: day.dateStr,
-        events: day.events,
+        tasks: day.tasks || [],
       };
     },
 
@@ -368,6 +418,25 @@ export default {
   margin-top: 10px;
 }
 
+.task-info {
+  background-color: white;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-info p {
+  margin: 8px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.task-info strong {
+  color: #666;
+  margin-right: 8px;
+}
+
 /* 客服悬浮按钮样式 */
 .floating-button {
   position: fixed;
@@ -410,5 +479,45 @@ export default {
 .nav-item i {
   font-size: 20px;
   margin-bottom: 5px;
+}
+
+/* 修改事件弹出框样式 */
+.el-dialog__body {
+  padding: 20px;
+}
+
+.task-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.task-item h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.task-item p {
+  margin: 5px 0;
+  color: #666;
+}
+
+.task-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.status-pending {
+  background-color: #e6a23c;
+  color: white;
+}
+
+.status-completed {
+  background-color: #67c23a;
+  color: white;
 }
 </style>
