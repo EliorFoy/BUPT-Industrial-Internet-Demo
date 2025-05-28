@@ -19,9 +19,9 @@ export default {
         case 'supervisor':
           return this.taskData;
         case 'manager':
-          return this.taskData.filter(task => task.form.status === 1);
+          return this.taskData.filter(task => [0, 1, 2].includes(task.form.status));
         case 'teamLeader':
-          return this.taskData.filter(task => task.form.status === 0);
+          return this.taskData.filter(task => [0, 2].includes(task.form.status));
         case 'member':
           return this.taskData.filter(task => 
             task.form.status === 2 && 
@@ -40,7 +40,7 @@ export default {
       const statusMap = {
         '0': '待确认人员',
         '1': '待确认班组',
-        '2': '已确定'
+        '2': '已确认'
       };
       return statusMap[status] || status;
     },

@@ -71,13 +71,13 @@ export default {
           'test-zg': '/supervisor',
           'test-gz1': '/manager',
           'test-bz1': '/team-leader',
-          'test-zy': '/member'
+          'test-zy1': '/member'
         }
         const roleName = {
           'test-zg': 'supervisor',
           'test-gz1': 'manager',
           'test-bz1': 'teamLeader',
-          'test-zy': 'member'
+          'test-zy1': 'member'
         }
 
         if (this.form.password === '123456' && roleMap[this.form.username]) {

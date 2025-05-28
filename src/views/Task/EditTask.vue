@@ -163,6 +163,20 @@
       }
     },
     methods: {
+      formatDateToISO(dateStr) {
+        try {
+          // 处理日期字符串格式
+          const date = new Date(dateStr.replace(/-/g, '/'));
+          if (isNaN(date.getTime())) {
+            console.error('无效的日期格式:', dateStr);
+            return null;
+          }
+          return date.toISOString();
+        } catch (error) {
+          console.error('日期转换错误:', error);
+          return null;
+        }
+      },
       goBack() {
         this.$router.go(-1);
       },
@@ -204,9 +218,9 @@
             taskStartTime: this.ruleForm.startTime,
             taskEndTime: this.ruleForm.endTime,
             responseLine: this.ruleForm.inspectionLine,
-            taskStartTimeDate: this.ruleForm.startTime ? new Date(this.ruleForm.startTime.replace(' ', 'T')).toISOString() : null,
-            taskEndTimeDate: this.ruleForm.endTime ? new Date(this.ruleForm.endTime.replace(' ', 'T')).toISOString() : null,
-            status: this.userRole === 'manager' ? 0 : 2,
+            taskStartTimeDate: this.ruleForm.startTime ? this.formatDateToISO(this.ruleForm.startTime) : null,
+            taskEndTimeDate: this.ruleForm.endTime ? this.formatDateToISO(this.ruleForm.endTime) : null,
+            status: this.userRole === 'manager' ? 0 : 2,  // 工长分配后状态为0（待确认人员），班组长确认后状态为2（已确认）
             pubPerson: localStorage.getItem('username') || 'test-zg',
             scheduleId: 66,
             groupId: 4
