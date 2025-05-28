@@ -21,7 +21,7 @@
           </el-avatar>
         </div>
         <div class="user-details">
-          <div class="username">test-zg</div>
+          <div class="username">{{ username }}</div>
           <div class="team-info">班组：暂无</div>
         </div>
       </div>
@@ -29,7 +29,7 @@
       <!-- 右侧职位信息 -->
       <div class="info-section right-section">
         <div class="info-title">职位</div>
-        <div class="info-content">主管</div>
+        <div class="info-content">{{ roleDisplay }}</div>
       </div>
     </div>
 
@@ -67,8 +67,26 @@ export default {
   name: 'Profile',
   data() {
     return {
-      avatarUrl: '' // 可以设置用户头像的URL
+      avatarUrl: '', // 可以设置用户头像的URL
+      username: '',
+      userRole: '',
+      roleMap: {
+        'supervisor': '主管',
+        'manager': '管理者',
+        'teamLeader': '组长',
+        'member': '成员'
+      }
     }
+  },
+  computed: {
+    roleDisplay() {
+      return this.roleMap[this.userRole] || '未知'
+    }
+  },
+  created() {
+    // 从 localStorage 获取用户信息
+    this.username = localStorage.getItem('username') || '未登录'
+    this.userRole = localStorage.getItem('userRole') || ''
   },
   methods: {
     // 处理列表项点击事件
@@ -79,8 +97,12 @@ export default {
 
     // 退出登录
     logout() {
-      console.log('退出登录');
-      // 这里可以添加退出登录的逻辑
+      // 清除本地存储的用户信息
+      localStorage.clear()
+      // 触发全局事件，通知其他组件用户已退出
+      this.$root.$emit('user-role-changed', '')
+      // 跳转到登录页
+      this.$router.push('/login')
     }
   }
 }

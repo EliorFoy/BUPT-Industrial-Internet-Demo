@@ -61,99 +61,40 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
-  created() {
-    // 初始化设备数据到 Vuex store
-    this.$store.commit('SET_DEVICES', this.devices)
-  },
   data() {
     return {
-      locationFilter: 'all',
-      devices: [
-        {
-          id: 1,
-          image: 'https://via.placeholder.com/80x60',
-          location: '花都新工厂',
-          name: '机加线M3内喷电机',
-          status: '正常',
-          sensorId: 'SN-001',
-          sensors: {
-            temperature: [22, 24, 23, 25, 26], 
-            humidity: [45, 48, 50, 47, 49]
-          }
-        },
-        {
-          id: 2,
-          image: 'https://via.placeholder.com/80x60',
-          location: '花都新工厂', 
-          name: '机加线工控机柜',
-          status: '正常'
-        },
-        {
-          id: 3,
-          image: 'https://via.placeholder.com/80x60',
-          location: '花都新工厂',
-          name: '机加线M5内喷电机',
-          status: '正常'
-        },
-        // 新增黄埔示范线设备
-        {
-          id: 4,
-          image: 'https://via.placeholder.com/80x60',
-          location: '黄埔示范线',
-          name: '涂装线机器人手臂',
-          status: '正常'
-        },
-        {
-          id: 5, 
-          image: 'https://via.placeholder.com/80x60',
-          location: '黄埔示范线',
-          name: '总装线传送带',
-          status: '异常'
-        },
-        // 新增异常设备
-        {
-          id: 6,
-          image: 'https://via.placeholder.com/80x60',
-          location: '花都新工厂',
-          name: '焊接工作站',
-          status: '异常'
-        }
-      ]
+      locationFilter: 'all'
     };
   },
   computed: {
+    ...mapGetters('equipment', [
+      'getDevicesByLocation',
+      'getDeviceStats'
+    ]),
     filteredDevices() {
-      if (this.locationFilter === 'all') {
-        return this.devices;
-      } else {
-        return this.devices.filter(device => device.location === this.locationFilter);
-      }
+      return this.getDevicesByLocation(this.locationFilter);
     },
-    // 修改为基于filteredDevices统计
     total() {
-      return this.filteredDevices.length
+      return this.getDeviceStats.total;
     },
     normal() {
-      return this.filteredDevices.filter(device => device.status === '正常').length
+      return this.getDeviceStats.normal;
     },
     abnormal() {
-      return this.filteredDevices.filter(device => device.status === '异常').length
+      return this.getDeviceStats.abnormal;
     }
   },
   mounted() {
     console.log('设备管理组件已加载');
   },
   methods: {
-    // 这里可以添加组件的方法
     viewDetail(device) {
       this.$router.push({
-        path: `/equipment-monitor/detail/${device.id}`,
-        query: {
-          name: device.name,
-          status: device.status,
-          location: device.location
-        }
+        name: 'equipment-detail',
+        params: { id: device.id }
       });
     }
   }
@@ -255,9 +196,3 @@ h1 {
   margin-left: auto;
 }
 </style>
-
-
-// 在store.js的actions中添加：
-async initDevices({ commit }, devices) {
-  commit('SET_DEVICES', devices)
-}
