@@ -54,6 +54,12 @@ const router = new Router({
       meta: { requiresAuth: true }
     },
     {
+      path: '/edit-task/:taskId',
+      name: 'EditTask',
+      component: () => import('@/views/Task/EditTask.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/task-detail/:taskId',
       name: 'TaskDetail',
       component: () => import('@/views/Task/Taskdetail.vue')

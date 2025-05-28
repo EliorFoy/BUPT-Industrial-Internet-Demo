@@ -5,16 +5,56 @@ export default {
   name: "Notification",
   data() {
     return {
-      taskData: []
+      taskData: [],
+      userRole: localStorage.getItem('userRole') || '',
+      username: localStorage.getItem('username') || ''
     }
   },
   created() {
     this.fetchTaskData();
   },
+  computed: {
+    filteredTasks() {
+      switch(this.userRole) {
+        case 'supervisor':
+          return this.taskData;
+        case 'manager':
+          return this.taskData.filter(task => task.form.status === 1);
+        case 'teamLeader':
+          return this.taskData.filter(task => task.form.status === 0);
+        case 'member':
+          return this.taskData.filter(task => 
+            task.form.status === 2 && 
+            task.form.bindingPerson === this.username
+          );
+        default:
+          return [];
+      }
+    },
+    canEdit() {
+      return ['manager', 'teamLeader'].includes(this.userRole);
+    }
+  },
   methods: {
+    getStatusText(status) {
+      const statusMap = {
+        '0': '待确认人员',
+        '1': '待确认班组',
+        '2': '已确定'
+      };
+      return statusMap[status] || status;
+    },
+    getStatusClass(status) {
+      const statusClassMap = {
+        '0': 'status-pending',
+        '1': 'status-pending',
+        '2': 'status-completed'
+      };
+      return statusClassMap[status] || 'status-pending';
+    },
     async fetchTaskData() {
       try {
-        const response = await axios.get('http://10.160.4.92:8018/cloudForm/getAllFormByUid/19');
+        const response = await axios.get('http://10.160.4.92:8018/cloudForm/getAllFormByUid/1145');
         if (response.data.code === 200 && response.data.ok) {
           this.taskData = response.data.data;
         }
@@ -45,6 +85,29 @@ export default {
         params: { taskId: taskId }
       });
     },
+    editTask(task) {
+      if (!task || !task.id) {
+        this.$message.error('任务数据不完整');
+        return;
+      }
+      
+      // 将任务数据存储到 localStorage 中，以便在编辑页面使用
+      localStorage.setItem('currentTask', JSON.stringify({
+        id: task.id,
+        taskType: task.form.taskType,
+        taskDetail: task.form.taskDetail,
+        taskStartTime: task.form.taskStartTime,
+        taskEndTime: task.form.taskEndTime,
+        responseLine: task.form.responseLine,
+        responsePerson: task.form.responsePerson,
+        status: task.form.status
+      }));
+      
+      this.$router.push({
+        name: 'EditTask',
+        params: { taskId: task.id }
+      });
+    },
     navigateTo(page) {
       this.$router.push({ name: page });
     }
@@ -62,14 +125,14 @@ export default {
 
     <!-- 任务列表 -->
     <div class="task-list">
-      <el-card v-for="(task, index) in taskData" 
+      <el-card v-for="(task, index) in filteredTasks" 
                :key="index" 
                class="task-card"
                shadow="hover">
         <div class="task-header">
           <span class="task-type">{{ task.form.taskType }}</span>
-          <span :class="['task-status', task.form.status === '已完成' ? 'status-completed' : 'status-pending']">
-            {{ task.form.status }}
+          <span :class="['task-status', getStatusClass(task.form.status)]">
+            {{ getStatusText(task.form.status) }}
           </span>
         </div>
         <div class="task-content">
@@ -78,6 +141,14 @@ export default {
         </div>
         <div class="task-footer">
           <el-button type="primary" size="small" @click="viewTaskDetail(task)">查看详情</el-button>
+          <el-button 
+            v-if="canEdit"
+            type="warning" 
+            size="small" 
+            @click="editTask(task)"
+            style="margin-left: 10px;">
+            编辑
+          </el-button>
         </div>
       </el-card>
     </div>

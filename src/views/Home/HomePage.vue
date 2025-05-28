@@ -14,11 +14,11 @@ export default {
           icon: 'el-icon-data-line',
           type: 'production'
         },
-        {
-          title: '工单管理',
-          icon: 'el-icon-document',
-          type: 'order'
-        }
+        // {
+        //   title: '工单管理',
+        //   icon: 'el-icon-document',
+        //   type: 'order'
+        // }
       ]
     }
   },

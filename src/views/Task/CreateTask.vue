@@ -156,7 +156,7 @@
             responsePerson: this.ruleForm.responsible,
             taskStartTimeDate: new Date(this.ruleForm.startTime).toISOString(),
             taskEndTimeDate: new Date(this.ruleForm.endTime).toISOString(),
-            status: 0,
+            status: 1,
             formId: formId,
             pubPerson: localStorage.getItem('username') || 'test-zg',
             scheduleId: 66,
@@ -166,8 +166,8 @@
           // 构建URL参数
           const params = new URLSearchParams({
             form: JSON.stringify(formData),
-            uid: '19',
-            type: '21',
+            uid: '1145',
+            type: '1145',
             line: this.ruleForm.inspectionLine
           });
 

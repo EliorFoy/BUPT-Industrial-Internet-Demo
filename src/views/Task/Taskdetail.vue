@@ -28,8 +28,8 @@
         </div>
         <div class="detail-item">
           <span class="label">状态：</span>
-          <span :class="['value', 'status', taskDetail.form.status === '已完成' ? 'status-completed' : 'status-pending']">
-            {{ taskDetail.form.status }}
+          <span :class="['value', 'status', getStatusClass(taskDetail.form.status)]">
+            {{ getStatusText(taskDetail.form.status, userRole) }}
           </span>
         </div>
         <div class="detail-item">
@@ -57,13 +57,42 @@ export default {
   name: 'TaskDetail',
   data() {
     return {
-      taskDetail: null
+      taskDetail: null,
+      userRole: 'worker' // 默认为组员，可选值：'foreman'(工长), 'teamLeader'(班组长), 'worker'(组员)
     }
   },
   created() {
     this.fetchTaskDetail();
   },
   methods: {
+    getStatusText(status, role) {
+      const statusMap = {
+        '0': {
+          foreman: '待确认人员',
+          teamLeader: '待确认人员',
+          worker: '待分配'
+        },
+        '1': {
+          foreman: '待修改',
+          teamLeader: '待确认班组',
+          worker: '待确认人员'
+        },
+        '2': {
+          foreman: '已确认',
+          teamLeader: '已确认',
+          worker: '已分配'
+        }
+      };
+      return statusMap[status]?.[role] || '未知状态';
+    },
+    getStatusClass(status) {
+      const statusClassMap = {
+        '0': 'status-pending',
+        '1': 'status-pending',
+        '2': 'status-completed'
+      };
+      return statusClassMap[status] || 'status-pending';
+    },
     formatDateTime(dateTimeStr) {
       if (!dateTimeStr) return '暂无';
       const date = new Date(dateTimeStr);

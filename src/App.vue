@@ -59,7 +59,7 @@ export default {
   computed: {
     // 判断是否显示导航栏
     showNav() {
-      return !['Login','create-task', 'ErrorMaker','equipment-monitor', 'production-monitor', 'work-order-monitoring','equipment-detail'].includes(this.$route.name)
+      return !['Login','task-detail','create-task', 'ErrorMaker','equipment-monitor', 'production-monitor', 'work-order-monitoring','equipment-detail'].includes(this.$route.name)
     },
     showBottomNav() {
       return this.showNav && ![].includes(this.$route.name)
@@ -107,8 +107,17 @@ export default {
 
     // 新增导航方法
     navigateTo(routeName) {
-      if (this.$route.name !== routeName) {
-        this.$router.push({ name: routeName }).catch(() => {})
+      const routeMap = {
+        'home': '/home',
+        'tasks': '/tasks',
+        'notifications': '/notifications',
+        'profile': '/profile'
+      }
+      const path = routeMap[routeName]
+      if (path && this.$route.path !== path) {
+        this.$router.push(path).catch(err => {
+          console.error('导航错误:', err)
+        })
       }
     },
   }
