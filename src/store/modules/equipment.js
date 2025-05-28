@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const state = {
   devices: [
     {
@@ -96,12 +98,47 @@ const mutations = {
     if (device) {
       device.status = status;
     }
+  },
+  updateDeviceSensorData(state, { id, sensorType, data }) {
+    const device = state.devices.find(d => d.id === id);
+    if (device && device.sensors) {
+      device.sensors[sensorType] = data;
+    }
   }
 };
 
 const actions = {
   updateDeviceStatus({ commit }, payload) {
     commit('updateDeviceStatus', payload);
+  },
+  async fetchSensorData({ commit }, { deviceId, sensorType }) {
+    try {
+      const params = new URLSearchParams();
+      params.append('device_id', 15); // 或21
+      params.append('attribute', 'environment_tmp'); // 你要的属性
+      params.append('access_token', 'b0e2ad69260d4debb7f7d4345ddc99ed.06d391b2489ca679cb82d3efc256da9f');
+
+      const config = {
+        method: 'post',
+        url: 'https://phmlearn.com/component/data/fengji',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: params
+      };
+
+      const response = await axios(config);
+      if (response.data.status === 0 && response.data.data.data.group1) {
+        commit('updateDeviceSensorData', {
+          id: deviceId,
+          sensorType,
+          data: response.data.data.data.group1
+        });
+        return response.data.data.data.group1;
+      }
+      throw new Error('数据格式不正确');
+    } catch (error) {
+      console.error('获取传感器数据失败:', error);
+      throw error;
+    }
   }
 };
 
