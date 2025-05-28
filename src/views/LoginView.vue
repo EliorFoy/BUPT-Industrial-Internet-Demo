@@ -1,0 +1,128 @@
+<template>
+  <div class="login-container">
+    <el-card class="login-card">
+      <h2 class="login-title">工业工单系统</h2>
+      
+      <el-form 
+        ref="loginForm"
+        :model="form"
+        :rules="rules"
+        @submit.native.prevent="handleLogin"
+      >
+        <el-form-item prop="username">
+          <el-input
+            v-model="form.username"
+            prefix-icon="el-icon-user"
+            placeholder="请输入用户名"
+          />
+        </el-form-item>
+
+        <el-form-item prop="password">
+          <el-input
+            v-model="form.password"
+            prefix-icon="el-icon-lock"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+          />
+        </el-form-item>
+
+        <el-button
+          type="primary"
+          native-type="submit"
+          class="login-btn"
+          :loading="loading"
+        >立即登录</el-button>
+      </el-form>
+    </el-card>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'LoginView',
+  data() {
+    return {
+      loading: false,
+      form: {
+        username: '',
+        password: ''
+      },
+      rules: {
+        username: [
+          { required: true, message: '用户名不能为空', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '密码不能为空', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  methods: {
+    async handleLogin() {
+      try {
+        const isValid = await this.$refs.loginForm.validate()
+        if (!isValid) return
+
+        this.loading = true
+        
+        // 模拟登录请求
+        const roleMap = {
+          'test-zg': '/supervisor',
+          'test-gz1': '/manager',
+          'test-bz1': '/team-leader',
+          'test-zy': '/member'
+        }
+        const roleName = {
+          'test-zg': 'supervisor',
+          'test-gz1': 'manager',
+          'test-bz1': 'teamLeader',
+          'test-zy': 'member'
+        }
+
+        if (this.form.password === '123456' && roleMap[this.form.username]) {
+          localStorage.setItem('userToken', 'demo-token')
+          localStorage.setItem('userRole', roleName[this.form.username])
+          
+          const targetPath = roleMap[this.form.username]
+          if (this.$route.path !== targetPath) {
+            await this.$router.push(targetPath)
+          }
+        } else {
+          this.$message.error('用户名或密码错误')
+        }
+      } catch (error) {
+        // 静默处理导航重复错误
+      } finally {
+        this.loading = false
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.login-card {
+  width: 400px;
+  padding: 20px;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #409EFF;
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+</style>
