@@ -92,6 +92,9 @@ export default {
           // 触发全局事件，通知其他组件用户信息已更新
           this.$root.$emit('user-role-changed', roleName[this.form.username])
           
+          // 等待一下确保状态更新完成
+          await this.$nextTick()
+          
           // 统一导航到 HomePage
           await this.$router.push('/home')
         } else {

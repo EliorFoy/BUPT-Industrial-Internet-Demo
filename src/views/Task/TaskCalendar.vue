@@ -3,7 +3,7 @@
     <!-- 顶部标题栏 -->
     <div class="header">
       <h2>任务</h2>
-      <el-button type="primary" icon="el-icon-plus" @click="addTask">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="addTask" v-if="isSupervisor">添加</el-button>
     </div>
 
     <!-- 日历部分 -->
@@ -117,6 +117,7 @@ export default {
       eventsDialogVisible: false,
       calendarDays: [],
       taskData: [], // 存储从API获取的任务数据
+      isSupervisor: false, // 是否是主管
     };
   },
   computed: {
@@ -125,9 +126,16 @@ export default {
     },
   },
   created() {
+    this.checkUserRole();
     this.fetchTaskData();
   },
   methods: {
+    // 检查用户角色
+    checkUserRole() {
+      const userRole = localStorage.getItem('userRole');
+      this.isSupervisor = userRole === 'supervisor';
+    },
+
     // 获取任务数据
     async fetchTaskData() {
       try {
@@ -256,8 +264,11 @@ export default {
 
     // 添加任务
     addTask() {
-      // 添加任务的逻辑
-      this.$message('添加任务功能将在这里实现');
+      if (!this.isSupervisor) {
+        this.$message.error('您没有权限创建工单');
+        return;
+      }
+      this.$router.push('/create-task');
     },
 
     // 导航到特定页面

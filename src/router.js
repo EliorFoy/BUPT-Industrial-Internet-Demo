@@ -48,6 +48,12 @@ const router = new Router({
       component: () => import('@/views/Task/TaskCalendar.vue')
     },
     {
+      path: '/create-task',
+      name: 'create-task',
+      component: () => import('@/views/Task/CreateTask.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/task-detail/:taskId',
       name: 'TaskDetail',
       component: () => import('@/views/Task/Taskdetail.vue')

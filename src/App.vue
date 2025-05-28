@@ -28,20 +28,19 @@
 
     <!-- 新增底部导航栏 -->
     <div v-if="showBottomNav" class="bottom-nav">
-      <div class="nav-item" @click="navigateTo('home')">
+      <div class="nav-item" :class="{ active: $route.name === 'home' }" @click="navigateTo('home')">
         <i class="el-icon-s-home"></i>
         <span>首页</span>
       </div>
-      <div class="nav-item" @click="navigateTo('tasks')">
+      <div class="nav-item" :class="{ active: $route.name === 'tasks' }" @click="navigateTo('tasks')">
         <i class="el-icon-tickets"></i>
         <span>任务</span>
       </div>
-      <div class="nav-item" @click="navigateTo('notifications')">
+      <div class="nav-item" :class="{ active: $route.name === 'notifications' }" @click="navigateTo('notifications')">
         <i class="el-icon-bell"></i>
         <span>通知</span>
       </div>
-      <!-- 修改所有导航项的name为实际路由名称 -->
-      <div class="nav-item" @click="navigateTo('profile')">
+      <div class="nav-item" :class="{ active: $route.name === 'profile' }" @click="navigateTo('profile')">
         <i class="el-icon-user"></i>
         <span>我的</span>
       </div>
@@ -60,7 +59,7 @@ export default {
   computed: {
     // 判断是否显示导航栏
     showNav() {
-      return !['Login', 'ErrorMaker','equipment-monitor', 'production-monitor', 'work-order-monitoring','equipment-detail'].includes(this.$route.name)
+      return !['Login','create-task', 'ErrorMaker','equipment-monitor', 'production-monitor', 'work-order-monitoring','equipment-detail'].includes(this.$route.name)
     },
     showBottomNav() {
       return this.showNav && ![].includes(this.$route.name)
@@ -76,7 +75,19 @@ export default {
       return this.currentRole ? roleMap[this.currentRole] || '未知角色' : '未登录'
     }
   },
+  watch: {
+    // 监听路由变化
+    '$route': {
+      immediate: true,
+      handler() {
+        this.currentRole = localStorage.getItem('userRole') || ''
+      }
+    }
+  },
   created() {
+    // 初始化用户角色
+    this.currentRole = localStorage.getItem('userRole') || ''
+    
     // 监听用户角色变化
     this.$root.$on('user-role-changed', (role) => {
       this.currentRole = role
@@ -208,6 +219,13 @@ main {
 
     &:hover {
       color: #409EFF;
+    }
+
+    &.active {
+      color: #409EFF;
+      i {
+        color: #409EFF;
+      }
     }
   }
 }
